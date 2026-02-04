@@ -36,11 +36,14 @@ export interface MapViewProps {
 
 export interface SearchPanelProps { 
   organizations: Organization[]; 
-  onOrganizationSelect: (org: Organization) => void; 
+  selectedOrganization: Organization | null;
+  onOrganizationSelect: (org: Organization) => void;
+  onClearSelection: () => void;
 }
 
 export interface OrganizationCardProps { 
   organization: Organization; 
+  isSelected?: boolean;
   onClick: (org: Organization) => void; 
 }
 

@@ -70,11 +70,31 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-gray-100">
-      <div className="h-full grid grid-cols-[30%_70%]">
+    <div style={{ 
+      height: '100vh', 
+      width: '100vw', 
+      maxHeight: '100vh',
+      maxWidth: '100vw',
+      overflow: 'hidden',
+      backgroundColor: '#f3f4f6',
+      position: 'fixed',
+      top: 0,
+      left: 0
+    }}>
+      <div style={{ 
+        height: '100vh',
+        width: '100vw',
+        maxHeight: '100vh',
+        maxWidth: '100vw',
+        display: 'grid',
+        gridTemplateColumns: '30% 70%',
+        overflow: 'hidden'
+      }}>
         <SearchPanel
           organizations={organizations}
+          selectedOrganization={selectedOrganization}
           onOrganizationSelect={handleOrganizationSelect}
+          onClearSelection={() => setSelectedOrganization(null)}
         />
         <MapView
           organizations={organizations}

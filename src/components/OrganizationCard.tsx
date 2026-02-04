@@ -1,7 +1,7 @@
 import React from 'react';
 import { OrganizationCardProps } from '../utils/types';
 
-export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization, onClick }) => {
+export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization, isSelected = false, onClick }) => {
   const handleClick = () => {
     onClick(organization);
   };
@@ -18,10 +18,12 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization
 
   return (
     <div 
-      className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer mb-4"
+      className={`bg-white rounded-lg shadow-sm hover:shadow-md transition-all cursor-pointer ${
+        isSelected ? 'border-2 border-blue-600 shadow-lg' : 'border border-gray-200'
+      }`}
       onClick={handleClick}
     >
-      <div className="h-2 bg-black rounded-t-lg"></div>
+      <div className={`h-2 rounded-t-lg ${isSelected ? 'bg-blue-600' : 'bg-black'}`}></div>
       
       <div className="p-4">
         <h3 className="font-bold text-lg text-gray-900 uppercase mb-2 leading-tight">

@@ -4,7 +4,9 @@ import { OrganizationCard } from './OrganizationCard';
 
 export const SearchPanel: React.FC<SearchPanelProps> = ({
   organizations,
-  onOrganizationSelect
+  selectedOrganization,
+  onOrganizationSelect,
+  onClearSelection
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -31,8 +33,9 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
   }, [organizations, searchQuery]);
 
   return (
-    <div className="w-full h-full bg-white border-r border-gray-200 flex flex-col">
-      <div className="p-4 border-b border-gray-200">
+    <div className="h-full w-full flex flex-col bg-white border-r border-gray-200" style={{ maxHeight: '100vh' }}>
+      {/* Header - fixed height */}
+      <div className="flex-shrink-0 p-4 border-b border-gray-200" style={{ maxHeight: '180px' }}>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">
           Ocean Research Organizations
         </h2>
@@ -63,19 +66,22 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      {/* Scrollable content area */}
+      <div className="flex-1 overflow-y-scroll" style={{ height: 0 }}>
         {filteredOrganizations.length === 0 ? (
           <div className="p-4 text-center text-gray-500">
             {searchQuery ? 'No organizations match your search.' : 'No organizations available.'}
           </div>
         ) : (
-          <div className="p-2 space-y-2">
+          <div className="p-4">
             {filteredOrganizations.map((org, index) => (
-              <OrganizationCard
-                key={`${org.organizationName}-${index}`}
-                organization={org}
-                onClick={onOrganizationSelect}
-              />
+              <div key={`${org.organizationName}-${index}`} className="mb-3">
+                <OrganizationCard
+                  organization={org}
+                  isSelected={selectedOrganization?.organizationName === org.organizationName}
+                  onClick={onOrganizationSelect}
+                />
+              </div>
             ))}
           </div>
         )}

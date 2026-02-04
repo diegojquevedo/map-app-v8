@@ -2,20 +2,53 @@
 @tailwind components;
 @tailwind utilities;
 
+/* FORZAR que nada se expanda */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 100vh !important;
+  width: 100vw !important;
+  overflow: hidden !important;
+  position: fixed !important;
+  background: #1a1a1a !important;
+}
+
+#root {
+  height: 100vh !important;
+  width: 100vw !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+@layer utilities {
+  .scrollbar-gutter-stable {
+    scrollbar-gutter: stable;
+  }
+}
+
 .map-container {
   height: 100vh;
   width: 100%;
 }
 
+/* Mapbox Popup - estilo similar a las cards */
 .mapboxgl-popup-content {
-  @apply p-4 rounded-lg shadow-lg;
-  max-width: 400px;
+  padding: 0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+  min-width: 320px !important;
+  max-width: 350px !important;
 }
 
 .mapboxgl-popup-close-button {
-  @apply text-gray-500 hover:text-gray-700;
-  font-size: 20px;
-  padding: 4px;
+  font-size: 20px !important;
+  padding: 4px 8px !important;
+  color: #6b7280 !important;
+}
+
+.mapboxgl-popup-close-button:hover {
+  background-color: #f3f4f6 !important;
+  color: #111827 !important;
 }
 
 .search-panel {

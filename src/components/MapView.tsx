@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { MapViewProps } from '../utils/types';
-import { MAP_INITIAL_CENTER, MAP_INITIAL_ZOOM, MAP_MAX_ZOOM, MAP_MIN_ZOOM, MARKER_COLOR, POPUP_MAX_WIDTH } from '../utils/constants';
+import { MAP_INITIAL_CENTER, MAP_INITIAL_ZOOM, MAP_MAX_ZOOM, MAP_MIN_ZOOM, MARKER_COLOR } from '../utils/constants';
 
 export const MapView: React.FC<MapViewProps> = ({ organizations, selectedOrganization, onMarkerClick }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -10,6 +10,7 @@ export const MapView: React.FC<MapViewProps> = ({ organizations, selectedOrganiz
   const popup = useRef<mapboxgl.Popup | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
 
+  // Initialize map
   useEffect(() => {
     const mapboxToken = (import.meta as any).env.VITE_MAPBOX_TOKEN;
     if (!mapboxToken) {
@@ -17,7 +18,7 @@ export const MapView: React.FC<MapViewProps> = ({ organizations, selectedOrganiz
       return;
     }
 
-    if (!mapContainer.current) return;
+    if (!mapContainer.current || map.current) return;
 
     mapboxgl.accessToken = mapboxToken;
 
@@ -37,13 +38,16 @@ export const MapView: React.FC<MapViewProps> = ({ organizations, selectedOrganiz
     return () => {
       if (map.current) {
         map.current.remove();
+        map.current = null;
       }
     };
   }, []);
 
+  // Add markers
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
 
+    // Remove existing markers
     markers.current.forEach(marker => marker.remove());
     markers.current = [];
 
@@ -58,9 +62,10 @@ export const MapView: React.FC<MapViewProps> = ({ organizations, selectedOrganiz
       org.siteLongitude <= 180
     );
 
+    // Add markers
     validOrganizations.forEach(org => {
       const el = document.createElement('div');
-      el.className = 'w-3 h-3 bg-blue-600 rounded-full border-2 border-white shadow-lg cursor-pointer hover:scale-125 transition-transform';
+      el.className = 'w-6 h-6 bg-blue-600 rounded-full border-2 border-white shadow-lg cursor-pointer hover:scale-125 transition-transform';
       el.style.backgroundColor = MARKER_COLOR;
 
       const marker = new mapboxgl.Marker(el)
@@ -74,6 +79,7 @@ export const MapView: React.FC<MapViewProps> = ({ organizations, selectedOrganiz
       markers.current.push(marker);
     });
 
+    // Fit bounds to show all markers
     if (validOrganizations.length > 0) {
       const bounds = new mapboxgl.LngLatBounds();
       validOrganizations.forEach(org => {
@@ -87,12 +93,17 @@ export const MapView: React.FC<MapViewProps> = ({ organizations, selectedOrganiz
     }
   }, [organizations, mapLoaded, onMarkerClick]);
 
+  // Handle selected organization
   useEffect(() => {
-    if (!map.current || !selectedOrganization) return;
+    if (!map.current || !mapLoaded) return;
 
+    // Remove existing popup
     if (popup.current) {
       popup.current.remove();
+      popup.current = null;
     }
+
+    if (!selectedOrganization) return;
 
     const isValidCoordinate = !isNaN(selectedOrganization.siteLatitude) && 
                              !isNaN(selectedOrganization.siteLongitude) &&
@@ -101,20 +112,46 @@ export const MapView: React.FC<MapViewProps> = ({ organizations, selectedOrganiz
 
     if (!isValidCoordinate) return;
 
+    // Create popup content with card style
+    const name = selectedOrganization.organizationName || 'Unknown';
+    const mission = selectedOrganization.mission || 'No mission available';
+    const city = selectedOrganization.city || 'Unknown';
+    const country = selectedOrganization.country || 'Unknown';
+    const website = selectedOrganization.website || '';
+    const email = selectedOrganization.contactEmail || '';
+    
+    const truncatedMission = mission.length > 120 ? mission.substring(0, 120) + '...' : mission;
+    
     const popupContent = `
-      <div class="p-4 max-w-sm">
-        <h3 class="font-bold text-lg mb-2 text-gray-900">${selectedOrganization.organizationName || 'Unknown Organization'}</h3>
-        <p class="text-sm text-gray-600 mb-3">${selectedOrganization.mission || 'No mission statement available'}</p>
-        <div class="space-y-1 text-xs text-gray-500">
-          <p><strong>Location:</strong> ${selectedOrganization.city || 'Unknown'}, ${selectedOrganization.country || 'Unknown'}</p>
-          ${selectedOrganization.website ? `<p><strong>Website:</strong> <a href="${selectedOrganization.website}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">${selectedOrganization.website}</a></p>` : ''}
-          ${selectedOrganization.contactEmail ? `<p><strong>Email:</strong> <a href="mailto:${selectedOrganization.contactEmail}" class="text-blue-600 hover:underline">${selectedOrganization.contactEmail}</a></p>` : ''}
+      <div style="width: 100%;">
+        <div style="height: 8px; background: #000; border-radius: 8px 8px 0 0;"></div>
+        <div style="padding: 16px;">
+          <h3 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 700; color: #111827; text-transform: uppercase; line-height: 1.3; padding-right: 20px;">
+            ${name}
+          </h3>
+          <p style="margin: 0 0 12px 0; font-size: 13px; color: #4b5563; line-height: 1.5;">
+            ${truncatedMission}
+          </p>
+          <div style="font-size: 12px; color: #6b7280; line-height: 1.6;">
+            <p style="margin: 0 0 6px 0;">
+              <span style="font-weight: 500;">Location:</span> ${city}, ${country}
+            </p>
+            ${website ? `<p style="margin: 0 0 6px 0;">
+              <span style="font-weight: 500;">Website:</span> 
+              <a href="${website}" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: none;">${website}</a>
+            </p>` : ''}
+            ${email ? `<p style="margin: 0;">
+              <span style="font-weight: 500;">Contact:</span> 
+              <a href="mailto:${email}" style="color: #2563eb; text-decoration: none;">${email}</a>
+            </p>` : ''}
+          </div>
         </div>
       </div>
     `;
 
+    // Create and add popup - DEBE flotar sobre el mapa
+    
     popup.current = new mapboxgl.Popup({
-      maxWidth: POPUP_MAX_WIDTH,
       closeButton: true,
       closeOnClick: false
     })
@@ -122,22 +159,38 @@ export const MapView: React.FC<MapViewProps> = ({ organizations, selectedOrganiz
       .setHTML(popupContent)
       .addTo(map.current);
 
+    // Fly to location
     map.current.flyTo({
       center: [selectedOrganization.siteLongitude, selectedOrganization.siteLatitude],
       zoom: Math.max(map.current.getZoom(), 8),
       duration: 1000
     });
 
-    map.current.once('moveend', () => map.current?.resize());
-    requestAnimationFrame(() => map.current?.resize());
-  }, [selectedOrganization]);
+    // Resize map after animation
+    setTimeout(() => {
+      map.current?.resize();
+    }, 100);
+
+  }, [selectedOrganization, mapLoaded]);
 
   return (
-    <div className="relative w-full h-full">
+    <div style={{ 
+      height: '100%', 
+      width: '100%', 
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
       <div 
-        ref={mapContainer} 
-        className="w-full h-full"
-        style={{ minHeight: '400px' }}
+        ref={mapContainer}
+        style={{ 
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: '100%',
+          width: '100%'
+        }}
       />
       {!mapLoaded && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
