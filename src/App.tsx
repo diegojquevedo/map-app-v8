@@ -2,8 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { MapView } from './components/MapView';
 import { SearchPanel } from './components/SearchPanel';
 import { Organization } from './utils/types';
-import { CSV_URL } from './utils/constants';
+import { CSV_URL, CORS_PROXY } from './utils/constants';
 import { parseCSV, transformCSVToOrganizations } from './utils/csvParser';
+
+const fetchCSV = async (url: string): Promise<string> => {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load data: ${response.status}`);
+  }
+  return response.text();
+};
 
 export const App: React.FC = () => {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
@@ -15,11 +23,15 @@ export const App: React.FC = () => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(CSV_URL);
-        if (!response.ok) {
-          throw new Error(`Failed to load data: ${response.status}`);
+        let csvText: string;
+
+        try {
+          csvText = await fetchCSV(CSV_URL);
+        } catch {
+          const proxyUrl = `${CORS_PROXY}${encodeURIComponent(CSV_URL)}`;
+          csvText = await fetchCSV(proxyUrl);
         }
-        const csvText = await response.text();
+
         const csvRows = parseCSV(csvText);
         const parsedData = transformCSVToOrganizations(csvRows);
         setOrganizations(parsedData);

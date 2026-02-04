@@ -1,4 +1,8 @@
-export const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ9Y4IzZ2ofEbQkuPyc7WA38PO3w4cRNhAOEjGJWDzihMDYvo7Khf_R2oZZr6roRg/pub?output=csv';
+const CSV_URL_GOOGLE = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ9Y4IzZ2ofEbQkuPyc7WA38PO3w4cRNhAOEjGJWDzihMDYvo7Khf_R2oZZr6roRg/pub?output=csv';
+
+export const CSV_URL = (import.meta as any).env?.VITE_CSV_URL ?? CSV_URL_GOOGLE;
+
+export const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
 
 export const MAP_INITIAL_CENTER: [number, number] = [0, 20];
 export const MAP_INITIAL_ZOOM = 2;
