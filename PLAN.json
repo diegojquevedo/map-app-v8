@@ -1,0 +1,228 @@
+{
+  "project_name": "ocean-research-map",
+  "description": "Interactive single-page web application displaying ocean research organizations on a world map. Features a split layout with search panel (30% width) and Mapbox interactive map (70% width). Loads data from CSV, displays markers for organizations, and provides search functionality with detailed popups.",
+  "stack": [
+    "React",
+    "TypeScript",
+    "Vite",
+    "TailwindCSS",
+    "Mapbox GL JS"
+  ],
+  "structure": {
+    "config": [
+      "package.json",
+      "tsconfig.json",
+      "vite.config.ts",
+      "tailwind.config.js",
+      "postcss.config.js"
+    ],
+    "root": [
+      "index.html",
+      ".gitignore",
+      ".env.example"
+    ],
+    "src": [
+      "main.tsx",
+      "App.tsx",
+      "index.css"
+    ],
+    "pages": [],
+    "components": [
+      "MapView.tsx",
+      "SearchPanel.tsx",
+      "OrganizationCard.tsx",
+      "OrganizationPopup.tsx"
+    ],
+    "utils": [
+      "types.ts",
+      "constants.ts",
+      "csvParser.ts",
+      "mapUtils.ts"
+    ]
+  },
+  "orden_creacion": [
+    "package.json",
+    "tsconfig.json",
+    "vite.config.ts",
+    "tailwind.config.js",
+    "postcss.config.js",
+    "index.html",
+    ".gitignore",
+    ".env.example",
+    "src/utils/types.ts",
+    "src/utils/constants.ts",
+    "src/utils/csvParser.ts",
+    "src/utils/mapUtils.ts",
+    "src/components/OrganizationPopup.tsx",
+    "src/components/OrganizationCard.tsx",
+    "src/components/SearchPanel.tsx",
+    "src/components/MapView.tsx",
+    "src/index.css",
+    "src/main.tsx",
+    "src/App.tsx"
+  ],
+  "file_descriptions": {
+    "package.json": "NPM configuration with dependencies: react, react-dom, typescript, vite, tailwindcss, postcss, autoprefixer, mapbox-gl, papaparse for CSV parsing, and @types packages",
+    "tsconfig.json": "TypeScript configuration for React with strict mode, DOM types, and ES2020 target",
+    "vite.config.ts": "Vite configuration with React plugin and environment variable handling",
+    "tailwind.config.js": "TailwindCSS configuration with content paths for React components",
+    "postcss.config.js": "PostCSS configuration for TailwindCSS and autoprefixer",
+    "index.html": "HTML entry point with root div, Mapbox GL CSS import, and meta tags for responsive design",
+    ".gitignore": "Git ignore file for node_modules, dist, .env, .DS_Store, and build artifacts",
+    ".env.example": "Environment variable template with VITE_MAPBOX_TOKEN placeholder",
+    "src/utils/types.ts": "TypeScript interfaces for Organization data, search state, map bounds, and component props",
+    "src/utils/constants.ts": "Application constants including CSV URL, map initial settings, and styling values",
+    "src/utils/csvParser.ts": "CSV parsing utilities with coordinate validation, null handling, and data transformation",
+    "src/utils/mapUtils.ts": "Map utility functions for coordinate validation, bounds calculation, and marker creation",
+    "src/components/OrganizationPopup.tsx": "Popup component content for displaying organization details in Mapbox popup",
+    "src/components/OrganizationCard.tsx": "Card component for displaying organization in search results with click handler",
+    "src/components/SearchPanel.tsx": "Left panel component with search input and results list, handles filtering and selection",
+    "src/components/MapView.tsx": "Main map component using Mapbox GL JS with markers, popups, and zoom functionality",
+    "src/index.css": "Global styles with Tailwind directives and custom CSS for map container and components",
+    "src/main.tsx": "React entry point rendering App component with StrictMode",
+    "src/App.tsx": "Main application component with split layout, state management, and component coordination"
+  },
+  "typescript_interfaces": {
+    "shared": [
+      "export interface Organization {",
+      "  organizationName: string;",
+      "  mission: string;",
+      "  website: string;",
+      "  contactEmail: string;",
+      "  headquartersAddress: string;",
+      "  street: string;",
+      "  city: string;",
+      "  stateProvince: string;",
+      "  country: string;",
+      "  zipPostalCode: string;",
+      "  siteLatitude: number;",
+      "  siteLongitude: number;",
+      "}",
+      "",
+      "export interface MapBounds {",
+      "  north: number;",
+      "  south: number;",
+      "  east: number;",
+      "  west: number;",
+      "}",
+      "",
+      "export interface MapState {",
+      "  center: [number, number];",
+      "  zoom: number;",
+      "  selectedOrganization: Organization | null;",
+      "}"
+    ],
+    "components": {
+      "MapView": "export interface MapViewProps { organizations: Organization[]; selectedOrganization: Organization | null; onMarkerClick: (org: Organization) => void; }",
+      "SearchPanel": "export interface SearchPanelProps { organizations: Organization[]; onOrganizationSelect: (org: Organization) => void; }",
+      "OrganizationCard": "export interface OrganizationCardProps { organization: Organization; onClick: (org: Organization) => void; }",
+      "OrganizationPopup": "export interface OrganizationPopupProps { organization: Organization; }"
+    },
+    "pages": {}
+  },
+  "component_specs": {
+    "src/components/MapView.tsx": {
+      "type": "component",
+      "props": {
+        "organizations": "Organization[] (required)",
+        "selectedOrganization": "Organization | null (required)",
+        "onMarkerClick": "(org: Organization) => void (required)"
+      },
+      "propsInterface": "MapViewProps",
+      "exports": [
+        "MapView"
+      ],
+      "imports": [
+        "react",
+        "mapbox-gl",
+        "../utils/types",
+        "../utils/constants"
+      ],
+      "description": "Interactive Mapbox map component with organization markers, popups, and zoom functionality. Uses colorful map style and world view initial position."
+    },
+    "src/components/SearchPanel.tsx": {
+      "type": "component",
+      "props": {
+        "organizations": "Organization[] (required)",
+        "onOrganizationSelect": "(org: Organization) => void (required)"
+      },
+      "propsInterface": "SearchPanelProps",
+      "exports": [
+        "SearchPanel"
+      ],
+      "imports": [
+        "react",
+        "./OrganizationCard",
+        "../utils/types"
+      ],
+      "description": "Left panel with search input and filtered results list. Handles null-safe text filtering across all organization fields."
+    },
+    "src/components/OrganizationCard.tsx": {
+      "type": "component",
+      "props": {
+        "organization": "Organization (required)",
+        "onClick": "(org: Organization) => void (required)"
+      },
+      "propsInterface": "OrganizationCardProps",
+      "exports": [
+        "OrganizationCard"
+      ],
+      "imports": [
+        "react",
+        "../utils/types"
+      ],
+      "description": "Card component for search results with black horizontal bar, bold uppercase title, and organization details"
+    },
+    "src/components/OrganizationPopup.tsx": {
+      "type": "component",
+      "props": {
+        "organization": "Organization (required)"
+      },
+      "propsInterface": "OrganizationPopupProps",
+      "exports": [
+        "OrganizationPopup"
+      ],
+      "imports": [
+        "react",
+        "../utils/types"
+      ],
+      "description": "Popup content component for displaying organization details in Mapbox popup with formatted layout"
+    },
+    "src/App.tsx": {
+      "type": "component",
+      "props": {},
+      "propsInterface": "{}",
+      "exports": [
+        "App"
+      ],
+      "imports": [
+        "react",
+        "./components/MapView",
+        "./components/SearchPanel",
+        "./utils/csvParser",
+        "./utils/types"
+      ],
+      "description": "Main app component with CSS Grid layout, CSV data loading, and state management for organization selection"
+    }
+  },
+  "dependencies": {
+    "dependencies": {
+      "react": "^18.2.0",
+      "react-dom": "^18.2.0",
+      "mapbox-gl": "^3.0.0",
+      "papaparse": "^5.4.1"
+    },
+    "devDependencies": {
+      "@types/react": "^18.2.0",
+      "@types/react-dom": "^18.2.0",
+      "@types/mapbox-gl": "^3.0.0",
+      "@types/papaparse": "^5.3.0",
+      "@vitejs/plugin-react": "^4.2.0",
+      "typescript": "^5.3.0",
+      "vite": "^5.0.0",
+      "tailwindcss": "^3.4.0",
+      "postcss": "^8.4.0",
+      "autoprefixer": "^10.4.0"
+    }
+  }
+}

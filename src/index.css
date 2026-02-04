@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.map-container {
+  height: 100vh;
+  width: 100%;
+}
+
+.mapboxgl-popup-content {
+  @apply p-4 rounded-lg shadow-lg;
+  max-width: 400px;
+}
+
+.mapboxgl-popup-close-button {
+  @apply text-gray-500 hover:text-gray-700;
+  font-size: 20px;
+  padding: 4px;
+}
+
+.search-panel {
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.organization-card {
+  @apply bg-white border border-gray-200 rounded-lg p-4 mb-3 hover:shadow-md transition-shadow cursor-pointer;
+}
+
+.organization-card:hover {
+  @apply border-blue-300;
+}
+
+.organization-card.selected {
+  @apply border-blue-500 bg-blue-50;
+}
+
+.search-input {
+  @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
+
+.marker {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.marker:hover {
+  transform: scale(1.1);
+}
