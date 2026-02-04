@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { MapView } from './components/MapView';
 import { SearchPanel } from './components/SearchPanel';
 import { Organization } from './utils/types';
+import { CSV_URL } from './utils/constants';
+import { parseCSV, transformCSVToOrganizations } from './utils/csvParser';
 
 export const App: React.FC = () => {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
@@ -9,64 +11,17 @@ export const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const parseCsvData = (csvText: string): Organization[] => {
-    const lines = csvText.split('\n');
-    if (lines.length < 2) return [];
-
-    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-    const data: Organization[] = [];
-
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-
-      const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
-      if (values.length < headers.length) continue;
-
-      const row: Record<string, string> = {};
-      headers.forEach((header, index) => {
-        row[header] = values[index] || '';
-      });
-
-      const lat = parseFloat(row['siteLatitude'] || row['latitude'] || '0');
-      const lng = parseFloat(row['siteLongitude'] || row['longitude'] || '0');
-
-      if (isNaN(lat) || isNaN(lng) || lat === 0 || lng === 0) continue;
-      if (lat < -90 || lat > 90 || lng < -180 || lng > 180) continue;
-
-      const organization: Organization = {
-        organizationName: row['organizationName'] || row['name'] || '',
-        mission: row['mission'] || row['description'] || '',
-        website: row['website'] || '',
-        contactEmail: row['contactEmail'] || row['email'] || '',
-        headquartersAddress: row['headquartersAddress'] || row['address'] || '',
-        street: row['street'] || '',
-        city: row['city'] || '',
-        stateProvince: row['stateProvince'] || row['state'] || '',
-        country: row['country'] || '',
-        zipPostalCode: row['zipPostalCode'] || row['zip'] || '',
-        siteLatitude: lat,
-        siteLongitude: lng
-      };
-
-      if (organization.organizationName) {
-        data.push(organization);
-      }
-    }
-
-    return data;
-  };
-
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/data/organizations.csv');
+        const response = await fetch(CSV_URL);
         if (!response.ok) {
           throw new Error(`Failed to load data: ${response.status}`);
         }
         const csvText = await response.text();
-        const parsedData = parseCsvData(csvText);
+        const csvRows = parseCSV(csvText);
+        const parsedData = transformCSVToOrganizations(csvRows);
         setOrganizations(parsedData);
         setError(null);
       } catch (err) {

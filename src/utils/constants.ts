@@ -1,4 +1,4 @@
-export const CSV_URL = 'https://docs.google.com/spreadsheets/d/1Hs5Oa4Hl4Nt5Oa4Hl4Nt5Oa4Hl4Nt5Oa4Hl4Nt5Oa4Hl4Nt/export?format=csv';
+export const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ9Y4IzZ2ofEbQkuPyc7WA38PO3w4cRNhAOEjGJWDzihMDYvo7Khf_R2oZZr6roRg/pub?output=csv';
 
 export const MAP_INITIAL_CENTER: [number, number] = [0, 20];
 export const MAP_INITIAL_ZOOM = 2;
