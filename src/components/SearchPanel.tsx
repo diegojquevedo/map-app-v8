@@ -6,7 +6,6 @@ export const SearchPanel: React.FC<SearchPanelProps> = ({
   organizations,
   selectedOrganization,
   onOrganizationSelect,
-  onClearSelection
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
