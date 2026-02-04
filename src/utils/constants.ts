@@ -1,13 +1,5 @@
-const CSV_URL_GOOGLE = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ9Y4IzZ2ofEbQkuPyc7WA38PO3w4cRNhAOEjGJWDzihMDYvo7Khf_R2oZZr6roRg/pub?output=csv';
-
-export const CSV_URL = (import.meta as any).env?.VITE_CSV_URL ?? CSV_URL_GOOGLE;
-
-// Proxies múltiples en orden de prioridad
-export const CORS_PROXIES = [
-  'https://corsproxy.io/?',
-  'https://api.codetabs.com/v1/proxy?quest=',
-  'https://api.allorigins.win/raw?url='
-];
+// Archivo estático - se sirve desde el mismo dominio
+export const CSV_URL = (import.meta as any).env?.VITE_CSV_URL ?? '/organizations.csv';
 
 export const MAP_INITIAL_CENTER: [number, number] = [0, 20];
 export const MAP_INITIAL_ZOOM = 2;

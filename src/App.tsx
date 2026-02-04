@@ -2,16 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { MapView } from './components/MapView';
 import { SearchPanel } from './components/SearchPanel';
 import { Organization } from './utils/types';
-import { CSV_URL, CORS_PROXIES } from './utils/constants';
+import { CSV_URL } from './utils/constants';
 import { parseCSV, transformCSVToOrganizations } from './utils/csvParser';
-
-const fetchCSV = async (url: string): Promise<string> => {
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}`);
-  }
-  return response.text();
-};
 
 export const App: React.FC = () => {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
@@ -23,38 +15,14 @@ export const App: React.FC = () => {
     const loadData = async () => {
       try {
         setLoading(true);
-        let csvText: string | null = null;
-        let lastError: Error | null = null;
-
-        try {
-          csvText = await fetchCSV(CSV_URL);
-        } catch (err) {
-          console.warn('Direct fetch failed:', err);
-          lastError = err as Error;
+        const response = await fetch(CSV_URL);
+        if (!response.ok) {
+          throw new Error(`Failed to load data: ${response.status}`);
         }
-
-        if (!csvText) {
-          for (const proxy of CORS_PROXIES) {
-            try {
-              const proxyUrl = `${proxy}${encodeURIComponent(CSV_URL)}`;
-              console.log('Trying proxy:', proxy);
-              csvText = await fetchCSV(proxyUrl);
-              console.log('Success with proxy:', proxy);
-              break;
-            } catch (err) {
-              console.warn(`Proxy ${proxy} failed:`, err);
-              lastError = err as Error;
-            }
-          }
-        }
-
-        if (!csvText) {
-          throw lastError ?? new Error('All fetch attempts failed');
-        }
-
+        const csvText = await response.text();
         const csvRows = parseCSV(csvText);
         const parsedData = transformCSVToOrganizations(csvRows);
-        
+
         if (parsedData.length === 0) {
           throw new Error('No valid organizations found in CSV');
         }
