@@ -127,6 +127,9 @@ export const MapView: React.FC<MapViewProps> = ({ organizations, selectedOrganiz
       zoom: Math.max(map.current.getZoom(), 8),
       duration: 1000
     });
+
+    map.current.once('moveend', () => map.current?.resize());
+    requestAnimationFrame(() => map.current?.resize());
   }, [selectedOrganization]);
 
   return (
