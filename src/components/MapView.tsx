@@ -8,9 +8,11 @@ export const MapView: React.FC<MapViewProps> = ({ organizations, selectedOrganiz
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
   const popup = useRef<mapboxgl.Popup | null>(null);
+  const onMarkerClickRef = useRef(onMarkerClick);
   const [mapLoaded, setMapLoaded] = useState(false);
 
-  // Initialize map
+  onMarkerClickRef.current = onMarkerClick;
+
   useEffect(() => {
     const mapboxToken = (import.meta as any).env.VITE_MAPBOX_TOKEN;
     if (!mapboxToken) {
@@ -43,11 +45,9 @@ export const MapView: React.FC<MapViewProps> = ({ organizations, selectedOrganiz
     };
   }, []);
 
-  // Add markers
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
 
-    // Remove existing markers
     markers.current.forEach(marker => marker.remove());
     markers.current = [];
 
@@ -62,10 +62,9 @@ export const MapView: React.FC<MapViewProps> = ({ organizations, selectedOrganiz
       org.siteLongitude <= 180
     );
 
-    // Add markers
     validOrganizations.forEach(org => {
       const el = document.createElement('div');
-      el.className = 'w-6 h-6 bg-blue-600 rounded-full border-2 border-white shadow-lg cursor-pointer hover:scale-125 transition-transform';
+      el.className = 'w-6 h-6 bg-blue-600 rounded-full border-2 border-white shadow-lg cursor-pointer';
       el.style.backgroundColor = MARKER_COLOR;
 
       const marker = new mapboxgl.Marker(el)
@@ -73,13 +72,12 @@ export const MapView: React.FC<MapViewProps> = ({ organizations, selectedOrganiz
         .addTo(map.current!);
 
       el.addEventListener('click', () => {
-        onMarkerClick(org);
+        onMarkerClickRef.current(org);
       });
 
       markers.current.push(marker);
     });
 
-    // Fit bounds to show all markers
     if (validOrganizations.length > 0) {
       const bounds = new mapboxgl.LngLatBounds();
       validOrganizations.forEach(org => {
@@ -91,13 +89,11 @@ export const MapView: React.FC<MapViewProps> = ({ organizations, selectedOrganiz
         map.current.fitBounds(bounds, { padding: 50, maxZoom: 10 });
       }
     }
-  }, [organizations, mapLoaded, onMarkerClick]);
+  }, [organizations, mapLoaded]);
 
-  // Handle selected organization
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
 
-    // Remove existing popup
     if (popup.current) {
       popup.current.remove();
       popup.current = null;
@@ -150,8 +146,6 @@ export const MapView: React.FC<MapViewProps> = ({ organizations, selectedOrganiz
       </div>
     `;
 
-    // Create and add popup - DEBE flotar sobre el mapa
-    
     popup.current = new mapboxgl.Popup({
       closeButton: true,
       closeOnClick: false
@@ -160,18 +154,16 @@ export const MapView: React.FC<MapViewProps> = ({ organizations, selectedOrganiz
       .setHTML(popupContent)
       .addTo(map.current);
 
-    // Fly to location
-    map.current.flyTo({
+    const currentZoom = map.current.getZoom();
+    const targetZoom = Math.max(currentZoom, 8);
+
+    map.current.easeTo({
       center: [selectedOrganization.siteLongitude, selectedOrganization.siteLatitude],
-      zoom: Math.max(map.current.getZoom(), 8),
-      duration: 1000
+      zoom: targetZoom,
+      duration: 1800,
+      easing: (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t),
+      essential: true
     });
-
-    // Resize map after animation
-    setTimeout(() => {
-      map.current?.resize();
-    }, 100);
-
   }, [selectedOrganization, mapLoaded]);
 
   return (
