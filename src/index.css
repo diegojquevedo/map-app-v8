@@ -36,8 +36,15 @@ html, body {
   padding: 0 !important;
   border-radius: 8px !important;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-  min-width: 320px !important;
-  max-width: 350px !important;
+  min-width: 340px !important;
+  max-width: 420px !important;
+  max-height: 80vh !important;
+  overflow-y: auto !important;
+}
+
+.mapbox-popup-inner a {
+  word-break: break-all;
+  overflow-wrap: break-word;
 }
 
 .mapboxgl-popup-close-button {

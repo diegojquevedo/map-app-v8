@@ -4,24 +4,32 @@ export interface CSVRow {
   [key: string]: string;
 }
 
-export function parseCSV(csvText: string): CSVRow[] {
-  const lines = csvText.trim().split('\n');
-  if (lines.length < 2) return [];
+function parseCSVRows(csvText: string): string[] {
+  const rows: string[] = [];
+  let current = '';
+  let inQuotes = false;
 
-  const headers = lines[0].split(',').map(header => header.trim().replace(/"/g, ''));
-  const rows: CSVRow[] = [];
+  for (let i = 0; i < csvText.length; i++) {
+    const char = csvText[i];
+    const nextChar = csvText[i + 1];
 
-  for (let i = 1; i < lines.length; i++) {
-    const values = parseCSVLine(lines[i]);
-    if (values.length === headers.length) {
-      const row: CSVRow = {};
-      headers.forEach((header, index) => {
-        row[header] = values[index]?.trim().replace(/"/g, '') ?? '';
-      });
-      rows.push(row);
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+        current += char;
+      }
+    } else if ((char === '\n' || char === '\r') && !inQuotes) {
+      if (char === '\r' && nextChar === '\n') i++;
+      if (current.trim()) rows.push(current);
+      current = '';
+    } else {
+      current += char;
     }
   }
-
+  if (current.trim()) rows.push(current);
   return rows;
 }
 
@@ -32,18 +40,43 @@ function parseCSVLine(line: string): string[] {
 
   for (let i = 0; i < line.length; i++) {
     const char = line[i];
-    
+    const nextChar = line[i + 1];
+
     if (char === '"') {
-      inQuotes = !inQuotes;
+      if (inQuotes && nextChar === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
     } else if (char === ',' && !inQuotes) {
-      result.push(current);
+      result.push(current.trim().replace(/^"|"$/g, ''));
       current = '';
     } else {
       current += char;
     }
   }
-  
-  result.push(current);
+  result.push(current.trim().replace(/^"|"$/g, ''));
+  return result;
+}
+
+export function parseCSV(csvText: string): CSVRow[] {
+  const rows = parseCSVRows(csvText.trim());
+  if (rows.length < 2) return [];
+
+  const headerValues = parseCSVLine(rows[0]);
+  const headers = headerValues.map(h => h.trim().replace(/"/g, ''));
+  const result: CSVRow[] = [];
+
+  for (let i = 1; i < rows.length; i++) {
+    const values = parseCSVLine(rows[i]);
+    const row: CSVRow = {};
+    headers.forEach((header, index) => {
+      row[header] = (values[index] ?? '').trim();
+    });
+    result.push(row);
+  }
+
   return result;
 }
 
@@ -76,9 +109,9 @@ export function transformCSVToOrganizations(csvRows: CSVRow[]): Organization[] {
         headquartersAddress: row['Headquarters Address'] ?? row['headquartersAddress'] ?? '',
         street: row['Street'] ?? row['street'] ?? '',
         city: row['City'] ?? row['city'] ?? '',
-        stateProvince: row['State/Province'] ?? row['stateProvince'] ?? '',
+        stateProvince: row['State/Province'] ?? row['State Province'] ?? row['stateProvince'] ?? '',
         country: row['Country'] ?? row['country'] ?? '',
-        zipPostalCode: row['Zip/Postal Code'] ?? row['zipPostalCode'] ?? '',
+        zipPostalCode: row['Zip/Postal Code'] ?? row['ZipPostal Code'] ?? row['zipPostalCode'] ?? '',
         siteLatitude: latitude,
         siteLongitude: longitude
       };

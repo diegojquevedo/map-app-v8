@@ -112,36 +112,37 @@ export const MapView: React.FC<MapViewProps> = ({ organizations, selectedOrganiz
 
     if (!isValidCoordinate) return;
 
-    // Create popup content with card style
-    const name = selectedOrganization.organizationName || 'Unknown';
-    const mission = selectedOrganization.mission || 'No mission available';
-    const city = selectedOrganization.city || 'Unknown';
-    const country = selectedOrganization.country || 'Unknown';
-    const website = selectedOrganization.website || '';
-    const email = selectedOrganization.contactEmail || '';
-    
-    const truncatedMission = mission.length > 120 ? mission.substring(0, 120) + '...' : mission;
-    
+    const name = selectedOrganization.organizationName ?? 'Unknown';
+    const mission = selectedOrganization.mission ?? 'No mission available';
+    const website = selectedOrganization.website ?? '';
+    const email = selectedOrganization.contactEmail ?? '';
+
+    const locationParts = [
+      selectedOrganization.headquartersAddress,
+      selectedOrganization.city,
+      selectedOrganization.stateProvince,
+      selectedOrganization.country
+    ].filter(Boolean);
+    const location = locationParts.length > 0 ? locationParts.join(', ') : 'Location not specified';
+
     const popupContent = `
-      <div style="width: 100%;">
+      <div class="mapbox-popup-inner">
         <div style="height: 8px; background: #000; border-radius: 8px 8px 0 0;"></div>
         <div style="padding: 16px;">
-          <h3 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 700; color: #111827; text-transform: uppercase; line-height: 1.3; padding-right: 20px;">
+          <h3 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 700; color: #111827; text-transform: uppercase; line-height: 1.3; padding-right: 24px;">
             ${name}
           </h3>
-          <p style="margin: 0 0 12px 0; font-size: 13px; color: #4b5563; line-height: 1.5;">
-            ${truncatedMission}
+          <p style="margin: 0 0 12px 0; font-size: 13px; color: #4b5563; line-height: 1.5; max-height: 120px; overflow-y: auto;">
+            ${mission}
           </p>
           <div style="font-size: 12px; color: #6b7280; line-height: 1.6;">
-            <p style="margin: 0 0 6px 0;">
-              <span style="font-weight: 500;">Location:</span> ${city}, ${country}
-            </p>
-            ${website ? `<p style="margin: 0 0 6px 0;">
-              <span style="font-weight: 500;">Website:</span> 
-              <a href="${website}" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: none;">${website}</a>
+            <p style="margin: 0 0 6px 0;"><span style="font-weight: 500;">Location:</span> ${location}</p>
+            ${website ? `<p style="margin: 0 0 6px 0; word-break: break-all; overflow-wrap: break-word;">
+              <span style="font-weight: 500;">Website:</span>
+              <a href="${website}" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: none; word-break: break-all;">${website}</a>
             </p>` : ''}
-            ${email ? `<p style="margin: 0;">
-              <span style="font-weight: 500;">Contact:</span> 
+            ${email ? `<p style="margin: 0; word-break: break-all;">
+              <span style="font-weight: 500;">Contact:</span>
               <a href="mailto:${email}" style="color: #2563eb; text-decoration: none;">${email}</a>
             </p>` : ''}
           </div>
