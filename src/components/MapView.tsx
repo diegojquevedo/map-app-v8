@@ -157,11 +157,12 @@ export const MapView: React.FC<MapViewProps> = ({ organizations, selectedOrganiz
     const currentZoom = map.current.getZoom();
     const targetZoom = Math.max(currentZoom, 8);
 
-    map.current.easeTo({
+    map.current.flyTo({
       center: [selectedOrganization.siteLongitude, selectedOrganization.siteLatitude],
       zoom: targetZoom,
-      duration: 1800,
-      easing: (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t),
+      duration: 3500,
+      curve: 1,
+      speed: 0.8,
       essential: true
     });
   }, [selectedOrganization, mapLoaded]);
