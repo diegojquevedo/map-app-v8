@@ -51,14 +51,12 @@ export const MapView: React.FC<MapViewProps> = ({ organizations, selectedOrganiz
     markers.current.forEach(marker => marker.remove());
     markers.current = [];
 
-    const validOrganizations = organizations.filter(org => 
-      !isNaN(org.siteLatitude) && 
-      !isNaN(org.siteLongitude) && 
-      org.siteLatitude !== 0 && 
-      org.siteLongitude !== 0 &&
-      org.siteLatitude >= -90 && 
+    const validOrganizations = organizations.filter(org =>
+      !isNaN(org.siteLatitude) &&
+      !isNaN(org.siteLongitude) &&
+      org.siteLatitude >= -90 &&
       org.siteLatitude <= 90 &&
-      org.siteLongitude >= -180 && 
+      org.siteLongitude >= -180 &&
       org.siteLongitude <= 180
     );
 
@@ -101,10 +99,12 @@ export const MapView: React.FC<MapViewProps> = ({ organizations, selectedOrganiz
 
     if (!selectedOrganization) return;
 
-    const isValidCoordinate = !isNaN(selectedOrganization.siteLatitude) && 
+    const isValidCoordinate = !isNaN(selectedOrganization.siteLatitude) &&
                              !isNaN(selectedOrganization.siteLongitude) &&
-                             selectedOrganization.siteLatitude !== 0 && 
-                             selectedOrganization.siteLongitude !== 0;
+                             selectedOrganization.siteLatitude >= -90 &&
+                             selectedOrganization.siteLatitude <= 90 &&
+                             selectedOrganization.siteLongitude >= -180 &&
+                             selectedOrganization.siteLongitude <= 180;
 
     if (!isValidCoordinate) return;
 
