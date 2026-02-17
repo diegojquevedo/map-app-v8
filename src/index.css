@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* FORZAR que nada se expanda */
 html, body {
   margin: 0 !important;
   padding: 0 !important;
@@ -31,7 +30,6 @@ html, body {
   width: 100%;
 }
 
-/* Mapbox Popup - estilo similar a las cards */
 .mapboxgl-popup-content {
   padding: 0 !important;
   border-radius: 8px !important;

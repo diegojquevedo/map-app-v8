@@ -40,7 +40,7 @@
       "mapUtils.ts"
     ]
   },
-  "orden_creacion": [
+  "creation_order": [
     "package.json",
     "tsconfig.json",
     "vite.config.ts",

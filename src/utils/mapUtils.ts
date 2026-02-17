@@ -1,10 +1,27 @@
-import { Organization, MapBounds } from './types';
+import { Organization } from '../components/App/App.d';
+import { MapBounds } from './mapUtils.d';
+import {
+  LATITUDE_MAX,
+  LATITUDE_MIN,
+  LONGITUDE_MAX,
+  LONGITUDE_MIN,
+  BOUNDS_PADDING_FACTOR,
+  CENTER_AVERAGE_DIVISOR,
+  EARTH_RADIUS_KM,
+  DEGREES_TO_RADIANS,
+  HAVERSINE_HALF_ANGLE_DIVISOR,
+  HAVERSINE_ANGULAR_MULTIPLIER,
+  CARDINAL_NORTH,
+  CARDINAL_SOUTH,
+  CARDINAL_EAST,
+  CARDINAL_WEST,
+  MARKER_ELEMENT_CLASSES
+} from './mapUtils.constants';
 
 export const isValidCoordinate = (lat: number, lng: number): boolean => {
-  return !isNaN(lat) && !isNaN(lng) && 
-         lat >= -90 && lat <= 90 && 
-         lng >= -180 && lng <= 180 &&
-         lat !== 0 && lng !== 0;
+  return !isNaN(lat) && !isNaN(lng) &&
+         lat >= LATITUDE_MIN && lat <= LATITUDE_MAX &&
+         lng >= LONGITUDE_MIN && lng <= LONGITUDE_MAX;
 };
 
 export const validateOrganizationCoordinates = (org: Organization): boolean => {
@@ -13,69 +30,63 @@ export const validateOrganizationCoordinates = (org: Organization): boolean => {
 
 export const calculateBounds = (organizations: Organization[]): MapBounds | null => {
   const validOrgs = organizations.filter(validateOrganizationCoordinates);
-  
-  if (validOrgs.length === 0) {
+
+  if (!validOrgs.length) {
     return null;
   }
 
-  let north = -90;
-  let south = 90;
-  let east = -180;
-  let west = 180;
+  const { north, south, east, west } = validOrgs.reduce(
+    (acc, org) => ({
+      north: Math.max(acc.north, org.siteLatitude),
+      south: Math.min(acc.south, org.siteLatitude),
+      east: Math.max(acc.east, org.siteLongitude),
+      west: Math.min(acc.west, org.siteLongitude)
+    }),
+    { north: LATITUDE_MIN, south: LATITUDE_MAX, east: LONGITUDE_MIN, west: LONGITUDE_MAX }
+  );
 
-  validOrgs.forEach(org => {
-    const lat = org.siteLatitude;
-    const lng = org.siteLongitude;
-    
-    if (lat > north) north = lat;
-    if (lat < south) south = lat;
-    if (lng > east) east = lng;
-    if (lng < west) west = lng;
-  });
-
-  const latPadding = (north - south) * 0.1;
-  const lngPadding = (east - west) * 0.1;
+  const latPadding = (north - south) * BOUNDS_PADDING_FACTOR;
+  const lngPadding = (east - west) * BOUNDS_PADDING_FACTOR;
 
   return {
-    north: Math.min(90, north + latPadding),
-    south: Math.max(-90, south - latPadding),
-    east: Math.min(180, east + lngPadding),
-    west: Math.max(-180, west - lngPadding)
+    north: Math.min(LATITUDE_MAX, north + latPadding),
+    south: Math.max(LATITUDE_MIN, south - latPadding),
+    east: Math.min(LONGITUDE_MAX, east + lngPadding),
+    west: Math.max(LONGITUDE_MIN, west - lngPadding)
   };
 };
 
 export const getMapCenter = (bounds: MapBounds): [number, number] => {
-  const centerLng = (bounds.east + bounds.west) / 2;
-  const centerLat = (bounds.north + bounds.south) / 2;
+  const centerLng = (bounds.east + bounds.west) / CENTER_AVERAGE_DIVISOR;
+  const centerLat = (bounds.north + bounds.south) / CENTER_AVERAGE_DIVISOR;
   return [centerLng, centerLat];
 };
 
 export const createMarkerElement = (organization: Organization): HTMLElement => {
   const el = document.createElement('div');
-  el.className = 'w-6 h-6 bg-blue-600 rounded-full border-2 border-white shadow-lg cursor-pointer hover:bg-blue-700 transition-colors';
+  el.className = MARKER_ELEMENT_CLASSES;
   el.setAttribute('data-organization-id', organization.organizationName);
   return el;
 };
 
 export const formatCoordinates = (lat: number, lng: number): string => {
-  const latDir = lat >= 0 ? 'N' : 'S';
-  const lngDir = lng >= 0 ? 'E' : 'W';
-  return `${Math.abs(lat).toFixed(4)}°${latDir}, ${Math.abs(lng).toFixed(4)}°${lngDir}`;
+  const latitudeDirection = lat >= 0 ? CARDINAL_NORTH : CARDINAL_SOUTH;
+  const longitudeDirection = lng >= 0 ? CARDINAL_EAST : CARDINAL_WEST;
+  return `${Math.abs(lat).toFixed(4)}°${latitudeDirection}, ${Math.abs(lng).toFixed(4)}°${longitudeDirection}`;
 };
 
 export const getDistanceBetweenPoints = (
-  lat1: number, 
-  lng1: number, 
-  lat2: number, 
+  lat1: number,
+  lng1: number,
+  lat2: number,
   lng2: number
 ): number => {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLng / 2) * Math.sin(dLng / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
+  const deltaLatitudeRadians = (lat2 - lat1) * DEGREES_TO_RADIANS;
+  const deltaLongitudeRadians = (lng2 - lng1) * DEGREES_TO_RADIANS;
+  const haversineA =
+    Math.sin(deltaLatitudeRadians / HAVERSINE_HALF_ANGLE_DIVISOR) * Math.sin(deltaLatitudeRadians / HAVERSINE_HALF_ANGLE_DIVISOR) +
+    Math.cos(lat1 * DEGREES_TO_RADIANS) * Math.cos(lat2 * DEGREES_TO_RADIANS) *
+    Math.sin(deltaLongitudeRadians / HAVERSINE_HALF_ANGLE_DIVISOR) * Math.sin(deltaLongitudeRadians / HAVERSINE_HALF_ANGLE_DIVISOR);
+  const angularDistanceRadians = HAVERSINE_ANGULAR_MULTIPLIER * Math.atan2(Math.sqrt(haversineA), Math.sqrt(1 - haversineA));
+  return EARTH_RADIUS_KM * angularDistanceRadians;
 };

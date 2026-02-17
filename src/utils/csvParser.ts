@@ -1,4 +1,5 @@
-import { Organization } from './types';
+import { Organization } from '../components/App/App.d';
+import { isValidCoordinate } from './mapUtils';
 
 export interface CSVRow {
   [key: string]: string;
@@ -80,24 +81,13 @@ export function parseCSV(csvText: string): CSVRow[] {
   return result;
 }
 
-export function validateCoordinates(latitude: number, longitude: number): boolean {
-  return !isNaN(latitude) && 
-         !isNaN(longitude) && 
-         latitude !== 0 && 
-         longitude !== 0 &&
-         latitude >= -90 && 
-         latitude <= 90 && 
-         longitude >= -180 && 
-         longitude <= 180;
-}
-
 export function transformCSVToOrganizations(csvRows: CSVRow[]): Organization[] {
   return csvRows
     .map(row => {
       const latitude = parseFloat(row['Site Latitude'] ?? row['siteLatitude'] ?? '0');
       const longitude = parseFloat(row['Site Longitude'] ?? row['siteLongitude'] ?? '0');
 
-      if (!validateCoordinates(latitude, longitude)) {
+      if (!isValidCoordinate(latitude, longitude)) {
         return null;
       }
 

@@ -1,10 +1,5 @@
-const CSV_GOOGLE = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ9Y4IzZ2ofEbQkuPyc7WA38PO3w4cRNhAOEjGJWDzihMDYvo7Khf_R2oZZr6roRg/pub?output=csv';
-
-const env = (import.meta as { env?: { VITE_CSV_URL?: string; PROD?: boolean } }).env;
-
-// En producción (Vercel): /api/csv (proxy serverless, evita CORS)
-// En desarrollo: Google Sheets directo (funciona desde localhost)
-export const CSV_URL = env?.VITE_CSV_URL ?? (env?.PROD ? '/api/csv' : CSV_GOOGLE);
+export const CSV_URL = import.meta.env.VITE_CSV_URL ?? '';
+export const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN ?? '';
 
 export const MAP_INITIAL_CENTER: [number, number] = [0, 20];
 export const MAP_INITIAL_ZOOM = 2;
