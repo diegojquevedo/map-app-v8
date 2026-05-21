@@ -1,4 +1,5 @@
 import { Organization } from '../components/App/App.d';
+import { CSV_COLUMN, CSV_HEADER_MARKERS } from './csvParser.constants';
 import { isValidCoordinate } from './mapUtils';
 
 export interface CSVRow {
@@ -61,15 +62,32 @@ function parseCSVLine(line: string): string[] {
   return result;
 }
 
+function normalizeHeaderValue(value: string): string {
+  return value.trim().replace(/"/g, '');
+}
+
+function isHeaderRow(values: string[]): boolean {
+  const normalized = values.map(normalizeHeaderValue);
+  return CSV_HEADER_MARKERS.every(marker => normalized.includes(marker));
+}
+
+function findHeaderRowIndex(rows: string[]): number {
+  const headerIndex = rows.findIndex(row => isHeaderRow(parseCSVLine(row)));
+  return headerIndex === -1 ? 0 : headerIndex;
+}
+
 export function parseCSV(csvText: string): CSVRow[] {
   const rows = parseCSVRows(csvText.trim());
   if (rows.length < 2) return [];
 
-  const headerValues = parseCSVLine(rows[0]);
-  const headers = headerValues.map(h => h.trim().replace(/"/g, ''));
+  const headerRowIndex = findHeaderRowIndex(rows);
+  const headerValues = parseCSVLine(rows[headerRowIndex]);
+  const headers = headerValues.map(normalizeHeaderValue);
   const result: CSVRow[] = [];
 
-  for (let i = 1; i < rows.length; i++) {
+  for (let i = 0; i < rows.length; i++) {
+    if (i === headerRowIndex) continue;
+
     const values = parseCSVLine(rows[i]);
     const row: CSVRow = {};
     headers.forEach((header, index) => {
@@ -81,27 +99,33 @@ export function parseCSV(csvText: string): CSVRow[] {
   return result;
 }
 
+function getRowValue(row: CSVRow, ...keys: string[]): string {
+  return keys
+    .map(key => row[key]?.trim() ?? '')
+    .find(value => value !== '') ?? '';
+}
+
 export function transformCSVToOrganizations(csvRows: CSVRow[]): Organization[] {
   return csvRows
     .map(row => {
-      const latitude = parseFloat(row['Site Latitude'] ?? row['siteLatitude'] ?? '0');
-      const longitude = parseFloat(row['Site Longitude'] ?? row['siteLongitude'] ?? '0');
+      const latitude = parseFloat(getRowValue(row, CSV_COLUMN.SITE_LATITUDE, 'siteLatitude') ?? '0');
+      const longitude = parseFloat(getRowValue(row, CSV_COLUMN.SITE_LONGITUDE, 'siteLongitude') ?? '0');
 
       if (!isValidCoordinate(latitude, longitude)) {
         return null;
       }
 
       return {
-        organizationName: row['Organization Name'] ?? row['organizationName'] ?? '',
-        mission: row['Mission'] ?? row['mission'] ?? '',
-        website: row['Website'] ?? row['website'] ?? '',
-        contactEmail: row['Contact Email'] ?? row['contactEmail'] ?? '',
-        headquartersAddress: row['Headquarters Address'] ?? row['headquartersAddress'] ?? '',
-        street: row['Street'] ?? row['street'] ?? '',
-        city: row['City'] ?? row['city'] ?? '',
-        stateProvince: row['State/Province'] ?? row['State Province'] ?? row['stateProvince'] ?? '',
-        country: row['Country'] ?? row['country'] ?? '',
-        zipPostalCode: row['Zip/Postal Code'] ?? row['ZipPostal Code'] ?? row['zipPostalCode'] ?? '',
+        organizationName: getRowValue(row, CSV_COLUMN.ORGANIZATION_NAME, 'organizationName'),
+        mission: getRowValue(row, CSV_COLUMN.MISSION, 'mission'),
+        website: getRowValue(row, CSV_COLUMN.WEBSITE, 'website'),
+        contactEmail: getRowValue(row, CSV_COLUMN.CONTACT_EMAIL, 'contactEmail'),
+        headquartersAddress: getRowValue(row, CSV_COLUMN.HEADQUARTERS_ADDRESS, 'headquartersAddress'),
+        street: getRowValue(row, CSV_COLUMN.STREET, 'street'),
+        city: getRowValue(row, CSV_COLUMN.CITY, 'city'),
+        stateProvince: getRowValue(row, CSV_COLUMN.STATE_PROVINCE, CSV_COLUMN.STATE_PROVINCE_ALT, 'stateProvince'),
+        country: getRowValue(row, CSV_COLUMN.COUNTRY, 'country'),
+        zipPostalCode: getRowValue(row, CSV_COLUMN.ZIP_POSTAL_CODE, CSV_COLUMN.ZIP_POSTAL_CODE_ALT, 'zipPostalCode'),
         siteLatitude: latitude,
         siteLongitude: longitude
       };
